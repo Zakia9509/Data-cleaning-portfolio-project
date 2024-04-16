@@ -1,0 +1,105 @@
+select SaleDate,convert(date,SaleDate) as new
+
+from nashvillehousingdata
+
+
+select 
+
+SUBSTRING(PropertyAddress,1,INSTR(PropertyAddress,',')-1) as address,
+SUBSTRING(PropertyAddress,INSTR(PropertyAddress,',')+1) as address2
+
+from nashvillehousingdata
+
+ALTER table nashvillehousingdata
+add PropertySplitAddress nvarchar(255)
+
+
+update nashvillehousingdata
+set PropertySplitAddress =SUBSTRING(PropertyAddress,1,INSTR(PropertyAddress,',')-1)
+
+ALTER table nashvillehousingdata
+add PropertySplitCity nvarchar(255)
+
+update nashvillehousingdata
+set PropertySplitCity =SUBSTRING(PropertyAddress,INSTR(PropertyAddress,',')+1)
+
+select *
+FROM nashvillehousingdata
+
+
+select DISTINCT SoldAsVacant ,count(SoldAsVacant)
+from nashvillehousingdata
+group by SoldAsVacant
+
+
+select SoldAsVacant,
+case when SoldAsVacant= 'y' then 'yes'
+     when SoldAsVacant='n' then 'no'
+     else SoldAsVacant
+     end 
+from nashvillehousingdata
+
+update nashvillehousingdata
+set SoldAsVacant= case when SoldAsVacant= 'y' then 'yes'
+     when SoldAsVacant='n' then 'no'
+     else SoldAsVacant
+     end 
+
+
+with rowNumCTE as (
+select *,
+ROW_NUMBER() OVER(
+partition by ParcelID,
+    PropertyAddress,SaleDate,LegalReference
+    order by 
+    UniqueID)row_num
+    where row_num >1
+    
+    FROM nashvillehousingdata
+    )
+    
+    SELECT * 
+    from rowNumCTE
+    where row_num >1
+     order by PropertyAddress
+    
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    DELETE from nashvillehousingdata
+    where ( ParcelID,
+    PropertyAddress,SaleDate,LegalReference,UniqueID)in (select   ParcelID,
+    PropertyAddress,SaleDate,LegalReference,UniqueID
+    from ( 
+    select  ParcelID,
+    PropertyAddress,SaleDate,LegalReference,UniqueID,
+    ROW_NUMBER() OVER(
+partition by ParcelID,
+    PropertyAddress,SaleDate,LegalReference,UniqueID
+    order by 
+    UniqueID)row_num
+     FROM nashvillehousingdata
+    
+    )as rownuMCTE
+
+    where row_num > 1);
+    
+   -- order by PropertyAddress
+    
+    
+    
+    select * 
+    from nashvillehousingdata
+    
